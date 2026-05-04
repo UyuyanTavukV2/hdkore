@@ -86,7 +86,6 @@
             box-shadow: 0 0 15px var(--neon-green);
         }
 
-        /* TV Kumandası ile seçim yaparken kolaylık sağlar */
         .ep-btn:focus {
             outline: 3px solid #fff;
             background-color: var(--neon-green);
@@ -128,7 +127,7 @@
             console.log('Sistem: Bölüm ' + id + ' yükleniyor...');
             
             if (Hls.isSupported()) {
-                hls.destroy(); // Eski yayını temizle
+                hls.destroy(); 
                 hls = new Hls();
                 hls.loadSource(url);
                 hls.attachMedia(video);
@@ -140,7 +139,6 @@
                 video.play();
             }
 
-            // Aktif buton görseli
             var btns = document.querySelectorAll('.ep-btn');
             btns.forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
