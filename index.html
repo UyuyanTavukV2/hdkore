@@ -3,10 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem TV - Fallout S02</title>
+    <title>SistemHub - TV Oynatıcı</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
     <style>
         :root {
+            /* Oynatıcının (Plyr) ana rengini System Yeşili yapıyoruz */
+            --plyr-color-main: #00ff41; 
+            
             --neon-green: #00ff41;
             --dark-bg: #0d0d0d;
             --terminal-gray: #1a1a1a;
@@ -36,28 +44,19 @@
             font-size: 24px;
             letter-spacing: 3px;
             text-transform: uppercase;
+            font-weight: bold;
         }
 
         .player-container {
             width: 95%;
             max-width: 1000px;
             background: #000;
-            border: 3px solid var(--neon-green);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
             border-radius: 8px;
-            overflow: hidden;
             margin-bottom: 25px;
-        }
-
-        video {
-            width: 100%;
-            display: block;
-        }
-
-        .controls-info {
-            font-size: 14px;
-            margin-bottom: 15px;
-            opacity: 0.8;
+            /* Plyr için özel ayarlar */
+            --plyr-video-background: #000;
         }
 
         .episode-grid {
@@ -76,8 +75,9 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.3s;
             text-align: center;
+            border-radius: 4px;
         }
 
         .ep-btn:hover, .ep-btn.active {
@@ -87,7 +87,7 @@
         }
 
         .ep-btn:focus {
-            outline: 3px solid #fff;
+            outline: 2px solid #fff;
             background-color: var(--neon-green);
             color: #000;
         }
@@ -96,53 +96,92 @@
 <body>
 
     <div class="header">
-        <div class="season-title">> FALLOUT: SEASON 02 <</div>
-        <div class="status">DURUM: SISTEM_CEVRIMICI // BOLUM_SECINIZ</div>
+        <div class="season-title">> SYSTEMHUB // FALLOUT: S02 <</div>
     </div>
 
     <div class="player-container">
-        <video id="mainPlayer" controls poster="https://via.placeholder.com/1000x560/000000/00FF41?text=SISTEM+HAZIR"></video>
+        <video id="mainPlayer" crossorigin playsinline></video>
     </div>
 
-    <div class="controls-info">İpucu: TV kumandasıyla butonların üzerine gelip OK tuşuna basınız.</div>
-
     <div class="episode-grid">
-        <button class="ep-btn" onclick="loadRapid('4', 'Https://s230.rapidrame.com/hls2/01/00026/cguiosk0yetc_,l,n,.urlset/index-f1-v1-a1.m3u8?t=fkmtUyD6t2OR6B9UTGx-3uKtkoWwPpEl2AfT9ok4qXk&s=1777921042&e=86400&f=133683&srv=s427&i=0.0&sp=0&p1=s230&p2=s230')">Bölüm 04</button>
-        <button class="ep-btn" onclick="loadRapid('5', 'BURAYA_BOLUM_5_LINKINI_YAPISTIR')">Bölüm 05</button>
-        <button class="ep-btn" onclick="loadRapid('6', 'BURAYA_BOLUM_6_LINKINI_YAPISTIR')">Bölüm 06</button>
-        <button class="ep-btn" onclick="loadRapid('7', 'BURAYA_BOLUM_7_LINKINI_YAPISTIR')">Bölüm 07</button>
-        <button class="ep-btn" onclick="loadRapid('8', 'BURAYA_BOLUM_8_LINKINI_YAPISTIR')">Bölüm 08 (Final)</button>
+        <button class="ep-btn active" onclick="loadRapid('4', 'Https://s230.rapidrame.com/hls2/01/00026/cguiosk0yetc_,l,n,.urlset/index-f1-v1-a1.m3u8?t=fkmtUyD6t2OR6B9UTGx-3uKtkoWwPpEl2AfT9ok4qXk&s=1777921042&e=86400&f=133683&srv=s427&i=0.0&sp=0&p1=s230&p2=s230', this)">Bölüm 04</button>
+        <button class="ep-btn" onclick="loadRapid('5', 'BURAYA_BOLUM_5_LINKINI_YAPISTIR', this)">Bölüm 05</button>
+        <button class="ep-btn" onclick="loadRapid('6', 'BURAYA_BOLUM_6_LINKINI_YAPISTIR', this)">Bölüm 06</button>
+        <button class="ep-btn" onclick="loadRapid('7', 'BURAYA_BOLUM_7_LINKINI_YAPISTIR', this)">Bölüm 07</button>
+        <button class="ep-btn" onclick="loadRapid('8', 'BURAYA_BOLUM_8_LINKINI_YAPISTIR', this)">Bölüm 08 (Final)</button>
     </div>
 
     <script>
-        var video = document.getElementById('mainPlayer');
-        var hls = new Hls();
-
-        function loadRapid(id, url) {
-            if (url.includes('BURAYA_')) {
-                alert('Hata: Önce yakaladığın linki koda eklemelisin!');
-                return;
-            }
-
-            console.log('Sistem: Bölüm ' + id + ' yükleniyor...');
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('mainPlayer');
             
-            if (Hls.isSupported()) {
-                hls.destroy(); 
-                hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play();
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = url;
-                video.play();
-            }
+            // Profesyonel Plyr oynatıcısını başlat
+            const player = new Plyr(video, {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'],
+                i18n: {
+                    restart: 'Yeniden Başlat',
+                    rewind: '{seektime}s Geri',
+                    play: 'Oynat',
+                    pause: 'Duraklat',
+                    fastForward: '{seektime}s İleri',
+                    seek: 'Ara',
+                    seekLabel: '{currentTime} / {duration}',
+                    played: 'Oynatılan',
+                    buffered: 'Önbelleğe Alınan',
+                    currentTime: 'Geçerli Zaman',
+                    duration: 'Süre',
+                    volume: 'Ses',
+                    mute: 'Sesi Kapat',
+                    unmute: 'Sesi Aç',
+                    enableCaptions: 'Altyazıları Aç',
+                    disableCaptions: 'Altyazıları Kapat',
+                    download: 'İndir',
+                    enterFullscreen: 'Tam Ekran',
+                    exitFullscreen: 'Tam Ekrandan Çık',
+                    frameTitle: 'Oyuncu: {title}',
+                    captions: 'Altyazılar',
+                    settings: 'Ayarlar',
+                    speed: 'Hız',
+                    normal: 'Normal',
+                    quality: 'Kalite',
+                    loop: 'Döngü',
+                }
+            });
 
-            var btns = document.querySelectorAll('.ep-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-        }
+            let hls = new Hls();
+
+            // Bölüm Yükleme Fonksiyonu
+            window.loadRapid = function(id, url, btnElement) {
+                if (url.includes('BURAYA_')) {
+                    alert('Hata: Önce linki koda eklemelisin!');
+                    return;
+                }
+
+                if (Hls.isSupported()) {
+                    hls.destroy(); 
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        player.play();
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.play();
+                }
+
+                // Butonları güncelle
+                if (btnElement) {
+                    var btns = document.querySelectorAll('.ep-btn');
+                    btns.forEach(b => b.classList.remove('active'));
+                    btnElement.classList.add('active');
+                }
+            };
+
+            // Sayfa açıldığında otomatik olarak 4. Bölümü yükle
+            const firstBtn = document.querySelector('.ep-btn');
+            loadRapid('4', 'Https://s230.rapidrame.com/hls2/01/00026/cguiosk0yetc_,l,n,.urlset/index-f1-v1-a1.m3u8?t=fkmtUyD6t2OR6B9UTGx-3uKtkoWwPpEl2AfT9ok4qXk&s=1777921042&e=86400&f=133683&srv=s427&i=0.0&sp=0&p1=s230&p2=s230', firstBtn);
+        });
     </script>
 
 </body>
