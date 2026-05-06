@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus - İletişim Platformu</title>
+    <style>
+        /* DISCORD BİREBİR RENK PALETİ VE TASARIMI */
+        :root {
+            --bg-primary: #36393f;
+            --bg-secondary: #2f3136;
+            --bg-tertiary: #202225;
+            --text-normal: #dcddde;
+            --text-muted: #72767d;
+            --blurple: #5865F2;
+            --blurple-hover: #4752C4;
+            --input-bg: #40444b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-normal); height: 100vh; display: flex; overflow: hidden; }
+
+        /* GİRİŞ EKRANI */
+        #auth-screen {
+            position: absolute; width: 100%; height: 100%; background-color: var(--bg-primary);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .auth-box {
+            background-color: var(--bg-secondary); padding: 30px; border-radius: 8px; width: 90%; max-width: 400px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2); text-align: center;
+        }
+        .auth-box h2 { margin-bottom: 20px; color: #fff; }
+        .auth-input {
+            width: 100%; padding: 10px; margin-bottom: 15px; background-color: var(--bg-tertiary);
+            border: 1px solid #000; border-radius: 4px; color: #fff; outline: none;
+        }
+        .auth-btn {
+            width: 100%; padding: 10px; background-color: var(--blurple); color: #fff;
+            border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-btn:hover { background-color: var(--blurple-hover); }
+
+        /* ANA UYGULAMA DÜZENİ */
+        #app-screen { display: none; width: 100%; height: 100%; }
+
+        /* Sunucu Çubuğu (En Sol) */
+        .server-sidebar {
+            width: 72px; background-color: var(--bg-tertiary); display: flex; flex-direction: column;
+            align-items: center; padding-top: 12px; gap: 10px; overflow-y: auto;
+        }
+        .server-icon {
+            width: 48px; height: 48px; background-color: var(--bg-primary); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; font-weight: bold;
+        }
+        .server-icon.active, .server-icon:hover { border-radius: 16px; background-color: var(--blurple); color: white; }
+
+        /* Kanal Çubuğu */
+        .channel-sidebar { width: 240px; background-color: var(--bg-secondary); display: flex; flex-direction: column; }
+        .server-header { padding: 16px; font-weight: bold; color: #fff; border-bottom: 1px solid var(--bg-tertiary); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .channel-list { flex: 1; padding: 10px; overflow-y: auto; }
+        .channel-item {
+            padding: 8px; margin-bottom: 2px; border-radius: 4px; cursor: pointer; color: var(--text-muted);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .channel-item:hover, .channel-item.active { background-color: #393c43; color: var(--text-normal); }
+        .user-panel { background-color: #292b2f; padding: 10px; display: flex; align-items: center; justify-content: space-between; }
+        
+        /* Sohbet Alanı */
+        .chat-area { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-primary); }
+        .chat-header { padding: 16px; border-bottom: 1px solid var(--bg-tertiary); font-weight: bold; font-size: 1.1em; color: #fff; }
+        .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { display: flex; gap: 15px; }
+        .avatar { width: 40px; height: 40px; background-color: var(--blurple); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold;}
+        .msg-content h4 { font-size: 1rem; margin-bottom: 4px; color: #fff; display: flex; align-items: baseline; gap: 10px;}
+        .msg-content h4 span { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
+        
+        /* Mesaj Yazma */
+        .message-input-area { padding: 20px; }
+        .message-input-wrapper { display: flex; background-color: var(--input-bg); border-radius: 8px; padding: 10px 15px; }
+        .message-input { flex: 1; background: transparent; border: none; color: var(--text-normal); font-size: 1rem; outline: none; }
+
+        /* Mobil Uyumluluk */
+        @media (max-width: 768px) {
+            .channel-sidebar { position: absolute; left: 72px; height: 100%; z-index: 100; transform: translateX(-100%); transition: 0.3s; }
+            .channel-sidebar.open { transform: translateX(0); }
+            .mobile-toggle { display: block !important; cursor: pointer; margin-right: 15px;}
+        }
+        .mobile-toggle { display: none; color: white; font-size: 20px;}
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2>Nexus'a Hoş Geldin</h2>
+            <input type="text" id="username" class="auth-input" placeholder="Kullanıcı Adı">
+            <input type="email" id="email" class="auth-input" placeholder="E-Posta">
+            <input type="password" id="password" class="auth-input" placeholder="Şifre">
+            <button class="auth-btn" onclick="login()">Giriş Yap</button>
+            <button class="auth-btn" style="background-color: #4f545c;" onclick="register()">Kayıt Ol</button>
+            <p id="auth-error" style="color: #ed4245; font-size: 12px; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        
+        <div class="server-sidebar">
+            <div class="server-icon active">N</div>
+            <div class="server-icon" style="background-color: #3ba55c;">+</div>
+        </div>
+
+        <div class="channel-sidebar" id="channel-sidebar">
+            <div class="server-header">Nexus Ana Sunucu</div>
+            <div class="channel-list" id="channel-list">
+                <div class="channel-item active" onclick="changeChannel('genel-sohbet')"># genel-sohbet</div>
+                <div class="channel-item" onclick="changeChannel('duyurular')"># duyurular</div>
+                <div class="channel-item" onclick="changeChannel('komut-kullanımı')"># komut-kullanımı</div>
+                
+                <div style="margin-top: 20px; font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">Yöneticiler</div>
+                <div class="channel-item" style="color: #f1c40f;">@ Kurucu</div>
+            </div>
+            <div class="user-panel">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="avatar" style="width: 32px; height: 32px; font-size: 14px;" id="user-avatar-icon">U</div>
+                    <div style="font-size: 14px; font-weight: bold;" id="display-username">Kullanıcı</div>
+                </div>
+                <div style="cursor: pointer; color: var(--text-muted);" onclick="logout()">Çıkış</div>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-header">
+                <span class="mobile-toggle" onclick="toggleSidebar()">☰</span>
+                <span id="current-channel-name"># genel-sohbet</span>
+            </div>
+            <div class="messages-container" id="chat-box">
+                </div>
+            <div class="message-input-area">
+                <div class="message-input-wrapper">
+                    <input type="text" id="msg-input" class="message-input" placeholder="#genel-sohbet kanalına mesaj gönder...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, push, onChildAdded, serverTimestamp, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        /* ========================================================================
+        DİKKAT: AŞAĞIDAKİ ALANA KENDİ FIREBASE YAPILANDIRMANI GİRMELİSİN.
+        firebase.google.com adresinden proje açıp Web App eklediğinde sana bu kodları verecek.
+        ========================================================================
+        */
+        const firebaseConfig = {
+            apiKey: "BURAYA_KENDI_API_ANAHTARINI_YAZ",
+            authDomain: "projenin-adi.firebaseapp.com",
+            databaseURL: "https://projenin-adi-default-rtdb.firebaseio.com",
+            projectId: "projenin-adi",
+            storageBucket: "projenin-adi.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        // Firebase Başlatma
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getDatabase(app);
+        } catch (error) {
+            console.warn("Firebase yapılandırması girilmedi. Görsel arayüz çalışacak ancak veritabanı aktif olmayacak.");
+        }
+
+        let currentUser = null;
+        let currentChannel = "genel-sohbet";
+        let messageListener = null;
+
+        // --- GLOBAL FONKSİYONLARI HTML'DEN ÇAĞIRABİLMEK İÇİN WİNDOW'A EKLİYORUZ ---
+        
+        window.register = async function() {
+            if(!auth) return alert("Firebase Config eksik!");
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const username = document.getElementById("username").value;
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, { displayName: username });
+                document.getElementById("auth-error").innerText = "";
+            } catch (error) {
+                document.getElementById("auth-error").innerText = "Kayıt Hatası: " + error.message;
+            }
+        };
+
+        window.login = async function() {
+            if(!auth) {
+                // Veritabanı yoksa test için arayüzü aç
+                document.getElementById("auth-screen").style.display = "none";
+                document.getElementById("app-screen").style.display = "flex";
+                return;
+            }
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById("auth-error").innerText = "";
+            } catch (error) {
+                document.getElementById("auth-error").innerText = "Giriş Hatası: " + error.message;
+            }
+        };
+
+        window.logout = function() {
+            if(auth) signOut(auth);
+            document.getElementById("auth-screen").style.display = "flex";
+            document.getElementById("app-screen").style.display = "none";
+        };
+
+        window.toggleSidebar = function() {
+            document.getElementById("channel-sidebar").classList.toggle("open");
+        };
+
+        window.changeChannel = function(channelName) {
+            currentChannel = channelName;
+            document.getElementById("current-channel-name").innerText = "# " + channelName;
+            document.getElementById("msg-input").placeholder = "#" + channelName + " kanalına mesaj gönder...";
+            document.getElementById("chat-box").innerHTML = ""; // Ekranı temizle
+            loadMessages(); // Yeni kanalın mesajlarını çek
+            
+            // Mobilde kanal seçince menüyü kapat
+            document.getElementById("channel-sidebar").classList.remove("open");
+        };
+
+        // --- AUTH DURUMU DİNLEYİCİSİ ---
+        if(auth) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById("auth-screen").style.display = "none";
+                    document.getElementById("app-screen").style.display = "flex";
+                    document.getElementById("display-username").innerText = user.displayName || user.email.split('@')[0];
+                    document.getElementById("user-avatar-icon").innerText = (user.displayName || user.email).charAt(0).toUpperCase();
+                    loadMessages();
+                } else {
+                    currentUser = null;
+                    document.getElementById("auth-screen").style.display = "flex";
+                    document.getElementById("app-screen").style.display = "none";
+                }
+            });
+        }
+
+        // --- MESAJ GÖNDERME ---
+        const msgInput = document.getElementById("msg-input");
+        msgInput.addEventListener("keypress", async function(event) {
+            if (event.key === "Enter" && msgInput.value.trim() !== "") {
+                const text = msgInput.value;
+                msgInput.value = ""; // İnputu temizle
+                
+                if(!db) {
+                    // Veritabanı yoksa sadece ekrana bas (Test modu)
+                    appendMessageToUI("Sen", text, new Date());
+                    return;
+                }
+
+                try {
+                    await push(ref(db, `channels/${currentChannel}/messages`), {
+                        uid: currentUser.uid,
+                        username: currentUser.displayName || "Bilinmeyen Kullanıcı",
+                        text: text,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (error) {
+                    console.error("Mesaj gönderilemedi:", error);
+                }
+            }
+        });
+
+        // --- MESAJLARI ÇEKME VE EKRANA YAZDIRMA ---
+        function loadMessages() {
+            if(!db) return;
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = ""; // Temizle
+
+            const messagesRef = query(ref(db, `channels/${currentChannel}/messages`));
+            
+            onChildAdded(messagesRef, (snapshot) => {
+                const data = snapshot.val();
+                let date = new Date();
+                if(data.timestamp) date = new Date(data.timestamp);
+                
+                appendMessageToUI(data.username, data.text, date);
+            });
+        }
+
+        function appendMessageToUI(username, text, date) {
+            const chatBox = document.getElementById("chat-box");
+            const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const initial = username.charAt(0).toUpperCase();
+            
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "message";
+            msgDiv.innerHTML = `
+                <div class="avatar">${initial}</div>
+                <div class="msg-content">
+                    <h4>${username} <span>Bugün saat ${timeString}</span></h4>
+                    <p>${text}</p>
+                </div>
+            `;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
