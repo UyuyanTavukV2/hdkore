@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SystemHub - Embed TV</title>
+    <style>
+        :root {
+            --neon-green: #00ff41;
+            --dark-bg: #0d0d0d;
+            --terminal-gray: #1a1a1a;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--neon-green);
+            width: 100%;
+            max-width: 1000px;
+            padding-bottom: 10px;
+        }
+
+        .season-title {
+            font-size: 24px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .player-container {
+            width: 95%;
+            max-width: 1000px;
+            /* iframe için televizyona uygun 16:9 oranı ayarlıyoruz */
+            aspect-ratio: 16 / 9; 
+            background: #000;
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            border-radius: 8px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .episode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            width: 95%;
+            max-width: 1000px;
+        }
+
+        .ep-btn {
+            background-color: var(--terminal-gray);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .ep-btn:hover, .ep-btn.active {
+            background-color: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        .ep-btn:focus {
+            outline: 2px solid #fff;
+            background-color: var(--neon-green);
+            color: #000;
+        }
+        
+        .warning {
+            font-size: 12px;
+            color: #ffcc00;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="season-title">> SYSTEMHUB // HOPPERS <</div>
+    </div>
+    
+    <div class="warning">
+        UYARI: Oynata basıldığında pop-up reklam açılabilir. Kumandadan "Geri" tuşuna basıp videoya dönün.
+    </div>
+
+    <div class="player-container">
+        <iframe id="mainIframe" src="https://vidmoly.biz/embed-rjgvm6mybxdp.html" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+    </div>
+
+    <div class="episode-grid">
+        <button class="ep-btn active" onclick="loadEmbed('https://vidmoly.biz/embed-rjgvm6mybxdp.html', this)">İzle</button>
+    </div>
+
+    <script>
+        function loadEmbed(url, btnElement) {
+            var iframe = document.getElementById('mainIframe');
+            iframe.src = url;
+
+            if (btnElement) {
+                var btns = document.querySelectorAll('.ep-btn');
+                for (var i = 0; i < btns.length; i++) {
+                    btns[i].classList.remove('active');
+                }
+                btnElement.classList.add('active');
+            }
+        }
+    </script>
+
+</body>
+</html>
